@@ -2,6 +2,7 @@
 This finds working configurations for pieces of the the wooden snake puzzle
 and solves their arrangement.
 
+
 Pseudocode:
 
 Start with a pile of pieces (two ends, some corners, some straights), and an
@@ -27,37 +28,65 @@ Try another location/piece matching:
 			try another location/piece matching there.
 """
 
-import Cube, End, Corner, Straight
 
-cube = Cube()
+ends = two ends
+corners = some corners
+straights = some straights
+volume = 3x3 cube
 
-allEnds = []
-allCorners = []
-allStraights = []
+any piece can face (these are opposites):
+	down, up
+	left, right
+	front, back
+an end can either face (connect) to one direction, or from one direction
+a straight or a corner can face (connect) from any direction
+a straight always faces (connects) to the opposite
+	of the direction it faces (connects) from
+a corner can face (connect) to any direction
+	except the direction it faces (connects) from, or the opposite ove that
 
-NUM_ENDS = 2
-NUM_CORNERS = 15
-NUM_STRAIGHTS = 
 
-for i in xrange(NUM_ENDS):
-	allEnds.append(End())
-for i in xrange(NUM_CORNERS):
-	allCorners.append(Corner())
-for i in xrange(NUM_STRAIGHTS):
-	allStraights.append(Straight())
+place a piece at a location and search from there:
+	put the piece at the location
+	if there was a piece before this one,
+		face this piece from the opposite of the direction
+		that the last piece was faced to
+	if the cube is now full,
+		save that solution
+	else try each of the directions the new piece can face towards:
+		try each of the remaining types of pieces:
+			figure out the location the next piece goes at
+			place the next piece there and search from there
+			then remove the next piece again
 
-def IsComplete(volume, ends, corners, straights):
-	return volume.isFilled() and not any(ends, corners, straights)
 
-def AddPiece(nextPiece, coord, volume, ends, corners, straights):
-	if not volume.isOpen(coord):
-		return
-	volume.addPiece(nextPiece, coord)
+place the first end:
+	face it towards the first direction
+	as long as it's facing towards the outside of the cube,
+		face it towards the next direction
 
-startPiece = allEnds.pop()
-for coord in cube.getCoordinates():
-	sequences = AddPiece(startPiece, coord, cube,
-		allEnds, allCorners, allStraights)
-	for sequence in sequences:
-		print sequence
+
+figure out the location the next piece goes at:
+	find the location of the previous piece
+	find the direction the previous piece is facing (connecting) to
+	this determines the location of the next piece
+
+
+each of the remaining types of pieces:
+	if we have corners,
+		include a corner
+	if we have straights,
+		include a straight
+	if we had neither,
+		we should have the other end left
+		so use the end
+
+
+to start:
+	use the first end
+	at each location in the cube,
+		place the first end at that location, and search from there,
+		keeping track of all the solutions we save along the way
+	then print out all the solutions
+
 
