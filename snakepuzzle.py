@@ -3,6 +3,7 @@ This finds working configurations for pieces of the the wooden snake puzzle
 and solves their arrangement.
 
 Pseudocode:
+
 Start with a pile of pieces (two ends, some corners, some straights), and an
 empty volume (a 3x3 cube).
 
