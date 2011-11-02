@@ -83,6 +83,9 @@ class Volume:
 	def _generateAvailables(self):
 		raise NotImplementedError()
 
+	def getNumLocations(self):
+		return len(self._availables)
+
 	def getUniqueStartingLocations(self):
 		raise NotImplementedError()
 
@@ -153,10 +156,13 @@ class MinSquare(Volume):
 		)
 
 
-ends = [End() for i in xrange(2)]
-corners = [Corner() for i in xrange(2)]
-straights = [Straight() for i in xrange(0)]
 volume = Cube()
+NUM_ENDS = 2
+NUM_CORNERS = 16
+NUM_STRAIGHTS = volume.getNumLocations() - (NUM_ENDS + NUM_CORNERS)
+ends =		[End()		for i in xrange(NUM_ENDS)	]
+corners =	[Corner()	for i in xrange(NUM_CORNERS)	]
+straights =	[Straight()	for i in xrange(NUM_STRAIGHTS)	]
 
 
 def PlacePieceAndSearch(volume, prevPiece, piece, location,
