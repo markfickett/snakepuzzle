@@ -137,9 +137,9 @@ class Cube(Volume):
 	def getUniqueStartingLocations(self):
 		return (
 			(0, 0, 0),	# a corner
-			(1, 0, 0),	# a middle of an edge
+			#(1, 0, 0),	# a middle of an edge (impossible)
 			(1, 1, 0),	# a middle of a face
-			(1, 1, 1),	# the middle of the cube
+			#(1, 1, 1),	# the middle of the cube (impossible)
 		)
 
 
