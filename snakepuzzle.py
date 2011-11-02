@@ -74,35 +74,30 @@ class Straight(Piece):
 		return [GetOpposite(self.faceFrom)]
 
 
-class Cube:
+class Volume:
 	def __init__(self):
 		self.start = None
-		self.__availables = {}
-		for i in xrange(3):
-			for j in xrange(3):
-				for k in xrange(3):
-					self.__availables[(i,j,k)] = True
+		self._availables = {}
+		self._generateAvailables()
+
+	def _generateAvailables(self):
+		raise NotImplementedError()
 
 	def getUniqueStartingLocations(self):
-		return (
-			(0, 0, 0),	# a corner
-			(1, 0, 0),	# a middle of an edge
-			(1, 1, 0),	# a middle of a face
-			(1, 1, 1),	# the middle of the cube
-		)
+		raise NotImplementedError()
 
 	def isAvailable(self, location):
-		return self.__availables.get(location, False)
+		return self._availables.get(location, False)
 
 	def takeLocation(self, location):
 		if not self.isAvailable(location):
 			raise RuntimeError(
 				'Location not available to be taken: %s.'
 				% location)
-		self.__availables[location] = False
+		self._availables[location] = False
 
 	def releaseLocation(self, location):
-		status = self.__availables.get(location)
+		status = self._availables.get(location)
 		if status is None:
 			raise RuntimeError(
 				'Location not in volume to be released: %s.'
@@ -111,11 +106,11 @@ class Cube:
 			raise RuntimeError(
 				'Location not taken to be released: %s.'
 				% location)
-		self.__availables[location] = True
+		self._availables[location] = True
 
 	def isFilled(self):
 		# TODO easy optimization waiting
-		return not any(self.__availables.values())
+		return not any(self._availables.values())
 
 	def getSolution(self):
 		if not self.isFilled():
@@ -129,10 +124,39 @@ class Cube:
 		return ', '.join(strPieces)
 
 
+class Cube(Volume):
+	def _generateAvailables(self):
+		for i in xrange(3):
+			for j in xrange(3):
+				for k in xrange(3):
+					self._availables[(i,j,k)] = True
+
+	def getUniqueStartingLocations(self):
+		return (
+			(0, 0, 0),	# a corner
+			(1, 0, 0),	# a middle of an edge
+			(1, 1, 0),	# a middle of a face
+			(1, 1, 1),	# the middle of the cube
+		)
+
+
+class MinSquare(Volume):
+	def _generateAvailables(self):
+		k = 0
+		for i in xrange(2):
+			for j in xrange(2):
+				self._availables[(i,j,k)] = True
+
+	def getUniqueStartingLocations(self):
+		return (
+			(0, 0, 0),	# a corner
+		)
+
+
 ends = [End() for i in xrange(2)]
-corners = [Corner() for i in xrange(16)]
-straights = [Straight() for i in xrange(9)]
-volume = Cube()
+corners = [Corner() for i in xrange(2)]	# 16
+straights = [Straight() for i in xrange(0)]	# 9
+volume = MinSquare()
 
 
 def PlacePieceAndSearch(volume, prevPiece, piece, location,
@@ -209,12 +233,6 @@ def CalculateNextLocation(piece):
 		return (x, y, z-1)
 	else:
 		return (x, y, z+1)
-
-
-def PrintOpposites():
-	for d in Direction:
-		print d
-		print '\t', GetOpposite(d)
 
 
 if __name__ == '__main__':

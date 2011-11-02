@@ -1,0 +1,6 @@
+Calculated in:
+	real	116m58.999s
+	user	116m48.936s
+	sys	0m8.059s
+7981 lines
+
