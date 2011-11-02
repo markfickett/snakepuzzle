@@ -154,9 +154,9 @@ class MinSquare(Volume):
 
 
 ends = [End() for i in xrange(2)]
-corners = [Corner() for i in xrange(2)]	# 16
-straights = [Straight() for i in xrange(0)]	# 9
-volume = MinSquare()
+corners = [Corner() for i in xrange(2)]
+straights = [Straight() for i in xrange(0)]
+volume = Cube()
 
 
 def PlacePieceAndSearch(volume, prevPiece, piece, location,
