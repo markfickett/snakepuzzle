@@ -8,7 +8,7 @@ Pseudocode:
 Start with a pile of pieces (two ends, 16 corners, 9 straights), and an
 empty volume (a 3x3 cube).
 
-Take an end ends and put it (not facing an outside) in the cube.
+Take an end ends and put it the cube.
 If that finished filling the cube, we're done.
 	Yield the current sequence.
 	Back up and try it in the next orientation.
@@ -26,137 +26,25 @@ Try another location/piece matching:
 		else we've tried all the possibilities, there,
 			so back up and (in the previous spot)
 			try another location/piece matching there.
+
+
+The goals of this implementation are understandability, correctness; and
+flexability, for example in solving arbitrary volumes or introducing new types
+of pieces such as a Y. Notably, it is not very fast.
+
+For more analysis, see http://www.jaapsch.net/puzzles/snakecube.htm and others.
 """
 
 
-from enum import Enum
+from Direction import Direction, GetOpposite
+from Piece import Piece
+from End import End
+from Corner import Corner
+from Straight import Straight
+from CubeThreeByThree import CubeThreeByThree
 
 
-Direction = Enum('down', 'up', 'left', 'right', 'front', 'back')
-
-
-def GetOpposite(direction):
-	pairIndex = direction.index
-	inPairIndex = (1, 0)[direction.index % 2]
-	return Direction[2*(pairIndex/2) + inPairIndex]
-
-
-class Piece():
-	def __init__(self):
-		self.faceFrom = None
-		self.faceTo = None
-		self.location = None
-		self.next = None
-
-	def __str__(self):
-		return '%s %s %s' % (self.LETTER, self.faceTo, self.location)
-
-class End(Piece):
-	LETTER = 'E'
-	def getFaceToPossibilities(self):
-		if self.faceFrom is not None:
-			raise RuntimeError('End has a faceFrom, cannot faceTo.')
-		return list(Direction)
-
-
-class Corner(Piece):
-	LETTER = 'C'
-	def getFaceToPossibilities(self):
-		faceTos = set(Direction)
-		faceTos.remove(self.faceFrom)
-		faceTos.remove(GetOpposite(self.faceFrom))
-		return list(faceTos)
-
-
-class Straight(Piece):
-	LETTER = 'S'
-	def getFaceToPossibilities(self):
-		return [GetOpposite(self.faceFrom)]
-
-
-class Volume:
-	def __init__(self):
-		self.start = None
-		self._availables = {}
-		self._generateAvailables()
-
-	def _generateAvailables(self):
-		raise NotImplementedError()
-
-	def getNumLocations(self):
-		return len(self._availables)
-
-	def getUniqueStartingLocations(self):
-		raise NotImplementedError()
-
-	def isAvailable(self, location):
-		return self._availables.get(location, False)
-
-	def takeLocation(self, location):
-		if not self.isAvailable(location):
-			raise RuntimeError(
-				'Location not available to be taken: %s.'
-				% location)
-		self._availables[location] = False
-
-	def releaseLocation(self, location):
-		status = self._availables.get(location)
-		if status is None:
-			raise RuntimeError(
-				'Location not in volume to be released: %s.'
-				% location)
-		elif status == True:
-			raise RuntimeError(
-				'Location not taken to be released: %s.'
-				% location)
-		self._availables[location] = True
-
-	def isFilled(self):
-		# TODO easy optimization waiting
-		return not any(self._availables.values())
-
-	def getSolution(self):
-		if not self.isFilled():
-			raise RuntimeError(
-				'Volume not filled! No present solution.')
-		piece = self.first
-		strPieces = []
-		while piece:
-			strPieces.append(str(piece))
-			piece = piece.next
-		return ', '.join(strPieces)
-
-
-class Cube(Volume):
-	def _generateAvailables(self):
-		for i in xrange(3):
-			for j in xrange(3):
-				for k in xrange(3):
-					self._availables[(i,j,k)] = True
-
-	def getUniqueStartingLocations(self):
-		return (
-			(0, 0, 0),	# a corner
-			#(1, 0, 0),	# a middle of an edge (impossible)
-			(1, 1, 0),	# a middle of a face
-			#(1, 1, 1),	# the middle of the cube (impossible)
-		)
-
-
-class MinSquare(Volume):
-	def _generateAvailables(self):
-		k = 0
-		for i in xrange(2):
-			for j in xrange(2):
-				self._availables[(i,j,k)] = True
-
-	def getUniqueStartingLocations(self):
-		return (
-			(0, 0, 0),	# a corner
-		)
-
-
-volume = Cube()
+volume = CubeThreeByThree()
 NUM_ENDS = 2
 NUM_CORNERS = 16
 NUM_STRAIGHTS = volume.getNumLocations() - (NUM_ENDS + NUM_CORNERS)
