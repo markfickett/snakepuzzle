@@ -12,26 +12,26 @@ For more analysis, see [Jaap's Puzzle Page](http://www.jaapsch.net/puzzles/snake
 Pseudocode
 ----------
 
-Start with a pile of pieces (two ends, 16 corners, 9 straights), and an
-empty volume (a 3x3 cube).
+	Start with a pile of pieces (two ends, 16 corners, 9 straights), and an
+	empty volume (a 3x3 cube).
 
-Take an end ends and put it the cube.
-If that finished filling the cube, we're done.
-	Yield the current sequence.
-	Back up and try it in the next orientation.
-If that didn't finish filling the cube,
-	if it doesn't connect to another open spot,
-		back up and try it in the next orientation.
-	else it does connect to another spot, so
-		pick another piece and put it (connected) in that spot.
-Try another location/piece matching:
-	if we were dealing with initial end piece,
-		put it in the next spot.
-	elif it was some subsequent piece,
-		if there's another kind we haven't tried,
-			pick another kind and put it (connected) in that spot.
-		else we've tried all the possibilities, there,
-			so back up and (in the previous spot)
-			try another location/piece matching there.
+	Take an end ends and put it the cube.
+	If that finished filling the cube, we're done.
+		Yield the current sequence.
+		Back up and try it in the next orientation.
+	If that didn't finish filling the cube,
+		if it doesn't connect to another open spot,
+			back up and try it in the next orientation.
+		else it does connect to another spot, so
+			pick another piece and put it (connected) in that spot.
+	Try another location/piece matching:
+		if we were dealing with initial end piece,
+			put it in the next spot.
+		elif it was some subsequent piece,
+			if there's another kind we haven't tried,
+				pick another kind and put it (connected) in that spot.
+			else we've tried all the possibilities, there,
+				so back up and (in the previous spot)
+				try another location/piece matching there.
 
 
