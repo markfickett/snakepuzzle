@@ -7,7 +7,11 @@ __all__ = [
 	'GetOpposite',
 ]
 
-from enum import Enum
+try:
+	from enum import Enum
+except ImportError, e:
+	print 'Get enum (one file) from: http://pypi.python.org/pypi/enum/0.4.3'
+	raise e
 
 
 Direction = Enum('down', 'up', 'left', 'right', 'front', 'back')
