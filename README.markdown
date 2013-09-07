@@ -15,7 +15,7 @@ Pseudocode
 	Start with a pile of pieces (two ends, 16 corners, 9 straights), and an
 	empty volume (a 3x3 cube).
 
-	Take an end ends and put it the cube.
+	Take an end and put it the cube.
 	If that finished filling the cube, we're done.
 		Yield the current sequence.
 		Back up and try it in the next orientation.
