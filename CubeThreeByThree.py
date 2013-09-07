@@ -6,7 +6,7 @@ from Volume import Volume
 
 
 class CubeThreeByThree(Volume):
-	def _generateAvailables(self):
+	def _initAvailables(self):
 		for i in xrange(3):
 			for j in xrange(3):
 				for k in xrange(3):

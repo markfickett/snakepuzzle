@@ -8,9 +8,9 @@ class Volume:
 	def __init__(self):
 		self.start = None
 		self._availables = {}
-		self._generateAvailables()
+		self._initAvailables()
 
-	def _generateAvailables(self):
+	def _initAvailables(self):
 		raise NotImplementedError()
 
 	def getNumLocations(self):

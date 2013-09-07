@@ -9,7 +9,7 @@ class MinSquare(Volume):
 	"""
 	A minimal volume for testing.
 	"""
-	def _generateAvailables(self):
+	def _initAvailables(self):
 		k = 0
 		for i in xrange(2):
 			for j in xrange(2):
