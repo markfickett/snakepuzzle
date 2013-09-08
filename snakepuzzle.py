@@ -6,10 +6,10 @@ and solves their arrangement. (See README for elaboration.)
 
 from direction import Direction, GetOpposite
 from pieces import Piece, End, Corner, Straight
-from CubeThreeByThree import CubeThreeByThree
+from volumes import VolumeFromFile
 
 
-volume = CubeThreeByThree()
+volume = VolumeFromFile('volumefiles/minsquare.txt')
 NUM_ENDS = 2
 NUM_CORNERS = 16
 NUM_STRAIGHTS = volume.getNumLocations() - (NUM_ENDS + NUM_CORNERS)
