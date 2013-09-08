@@ -114,9 +114,11 @@ class VolumeFromFile(Volume):
 
 	def _addLine(self, lineNum, z, y, line):
 		for x, c in enumerate(line):
-			if c not in ('e', 'o'):
+			if c not in ('e', 'o', ' '):
 				raise ValueError(
-						'bad character %r on line %d, column %d', c, lineNum, x+1)
+						'bad character %r on line %d, column %d' % (c, lineNum, x+1))
+			if not c:
+				continue
 			self._availables[(x, y, z)] = True
 			if c == 'e':
 				self._startingPoints.append((x, y, z))
