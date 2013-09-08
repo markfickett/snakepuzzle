@@ -72,12 +72,12 @@ class Volume:
 		if not self.isFilled():
 			raise RuntimeError(
 				'Volume not filled! No present solution.')
-		piece = self.first
-		strPieces = []
+		piece = self.first.deepCopy()
+		pieces = []
 		while piece:
-			strPieces.append(str(piece))
+			pieces.append(piece)
 			piece = piece.next
-		return ', '.join(strPieces)
+		return pieces
 
 
 class VolumeFromFile(Volume):

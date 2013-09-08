@@ -9,17 +9,17 @@ from pieces import Piece, End, Corner, Straight
 from volumes import VolumeFromFile
 
 
-volume = VolumeFromFile('volumefiles/minsquare.txt')
 NUM_ENDS = 2
-NUM_CORNERS = 16
-NUM_STRAIGHTS = volume.getNumLocations() - (NUM_ENDS + NUM_CORNERS)
-ends =		[End()		for i in xrange(NUM_ENDS)	]
-corners =	[Corner()	for i in xrange(NUM_CORNERS)	]
-straights =	[Straight()	for i in xrange(NUM_STRAIGHTS)	]
 
 
 def PlacePieceAndSearch(volume, prevPiece, piece, location,
 		ends, corners, straights):
+	"""Places a Piece in the next location in the Volume, continues searching.
+
+	Yields:
+		Configurations of connected Pieces which fill the Volume, as lists of Piece
+		objects.
+	"""
 	if not volume.isAvailable(location):
 		return
 	volume.takeLocation(location)
@@ -94,13 +94,25 @@ def CalculateNextLocation(piece):
 		return (x, y, z+1)
 
 
-if __name__ == '__main__':
+def FindSolutions(volume, numCorners):
+	numStraights = volume.getNumLocations() - (NUM_ENDS + numCorners)
+	if numStraights < 0:
+		raise RuntimeError(
+				'Volume %s has only %d locations, but requested %d corners.'
+				% (volume.name, volume.getNumLocations(), numCorners))
+	ends = [End() for i in xrange(NUM_ENDS)]
+	corners = [Corner() for i in xrange(numCorners)]
+	straights = [Straight() for i in xrange(numStraights)]
+
 	firstEnd = ends.pop()
 	volume.first = firstEnd
 	for location in volume.getUniqueStartingLocations():
 		for solution in PlacePieceAndSearch(
 				volume, None, firstEnd, location,
 				ends, corners, straights):
-			print solution
+			yield solution
 
 
+if __name__ == '__main__':
+	for solution in FindSolutions(VolumeFromFile('volumefiles/minsquare.txt'), 2):
+		print ', '.join(str(piece) for piece in solution)
