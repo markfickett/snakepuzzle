@@ -4,11 +4,8 @@ and solves their arrangement. (See README for elaboration.)
 """
 
 
-from Direction import Direction, GetOpposite
-from Piece import Piece
-from End import End
-from Corner import Corner
-from Straight import Straight
+from direction import Direction, GetOpposite
+from pieces import Piece, End, Corner, Straight
 from CubeThreeByThree import CubeThreeByThree
 
 

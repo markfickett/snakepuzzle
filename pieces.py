@@ -1,3 +1,15 @@
+from Direction import Direction
+from Direction import GetOpposite
+
+
+__all__ = [
+	'Corner',
+	'End',
+	'Piece',
+	'Straight',
+]
+
+
 class Piece():
 	"""
 	Abstract base for the cube pieces of the puzzle. Each piece has two
@@ -22,3 +34,25 @@ class Piece():
 		"""
 		raise NotImplementedError()
 
+
+class End(Piece):
+	LETTER = 'E'
+	def getFaceToPossibilities(self):
+		if self.faceFrom is not None:
+			raise RuntimeError('End has a faceFrom, cannot faceTo.')
+		return list(Direction)
+
+
+class Straight(Piece):
+	LETTER = 'S'
+	def getFaceToPossibilities(self):
+		return [GetOpposite(self.faceFrom)]
+
+
+class Corner(Piece):
+	LETTER = 'C'
+	def getFaceToPossibilities(self):
+		faceTos = set(Direction)
+		faceTos.remove(self.faceFrom)
+		faceTos.remove(GetOpposite(self.faceFrom))
+		return list(faceTos)
