@@ -25,6 +25,7 @@ class Volume:
 		self.name = name
 		self._availables = {}
 		self._initAvailables()
+		self._free = self.getNumLocations()
 
 	def _initAvailables(self):
 		"""Sets all the locations in the Volume to True."""
@@ -51,6 +52,7 @@ class Volume:
 				'Location not available to be taken: %s.'
 				% location)
 		self._availables[location] = False
+		self._free -= 1
 
 	def releaseLocation(self, location):
 		status = self._availables.get(location)
@@ -63,10 +65,10 @@ class Volume:
 				'Location not taken to be released: %s.'
 				% location)
 		self._availables[location] = True
+		self._free += 1
 
 	def isFilled(self):
-		# TODO easy optimization waiting
-		return not any(self._availables.values())
+		return self._free == 0
 
 	def getSolution(self):
 		if not self.isFilled():
