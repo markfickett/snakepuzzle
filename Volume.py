@@ -1,7 +1,7 @@
 class Volume:
 	"""
 	A coordinate 3-space into which to place and align Pieces. This tracks
-	which locations are available, which are unique starting poitns, and
+	which locations are available, which are unique starting points, and
 	(given one Piece as the starting Piece) follows the linked list to
 	generate a solution string.
 	"""
