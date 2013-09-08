@@ -1,5 +1,4 @@
-from Direction import Direction
-from Direction import GetOpposite
+from direction import Direction, GetOpposite
 
 
 __all__ = [

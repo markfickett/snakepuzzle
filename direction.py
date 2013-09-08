@@ -1,6 +1,4 @@
-"""
-Enumerate directions in 3-space, and calculate their opposites.
-"""
+"""Enumerate directions in 3-space, and calculate their opposites."""
 
 __all__ = [
 	'Direction',
