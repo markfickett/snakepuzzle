@@ -15,6 +15,13 @@ class Piece():
 	holes, through which the string connects. One faces faceFrom, which
 	determines what directions the other can face: faceTo. (For ends,
 	one of faceTo and faceFrom will be None.)
+
+	Attributes:
+		faceFrom: The Direction (enum value) to go to get to the previous Piece.
+		faceTo: The Direction (enum value) to go to get to the next Piece.
+		location: A coordinate triple: where this Piece is.
+		next: A Piece (or None).
+		LETTER: A one-character designation for this Piece's type.
 	"""
 	def __init__(self):
 		self.faceFrom = None
@@ -24,6 +31,14 @@ class Piece():
 
 	def __str__(self):
 		return '%s %s %s' % (self.LETTER, self.faceTo, self.location)
+
+	def deepCopy(self):
+		p = self.__class__()
+		p.faceFrom = self.faceFrom
+		p.faceTo = self.faceTo
+		p.location = tuple(self.location)
+		p.next = self.next.deepCopy() if self.next else None
+		return p
 
 	def getFaceToPossibilities(self):
 		"""
