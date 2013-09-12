@@ -6,27 +6,30 @@ variation, the cubes may be folded into one or several volumes (such as an arch,
 a toroid, etc).
 
 Usage:
-	findwalks [sequence] [volume definition, ...]
+	findfoldings [sequence] [volume definition, ...]
 
 Example:
-	cube.txt contains
+	cube2.txt contains
 		eo
 		oo
 
 		oo
 		oo
-	rect.txt contains
+	rect2x4.txt contains
 		eeoo
 		oooo
 
 	Running the program as
-		findwalks ECCCCCCE cube.txt rect.txt
+		findfoldings ECCCCCCE volumefiles/cube2.txt volumefiles/rect2x4.txt
 	prints the foldings that could satisfy both puzzles, like
-		cube 1
-		ORDLFURD
-		rect 1
-		ODRURDRU
+		URDFULD
+		URDFLUR
 		...
+		FRBUFLB
+		cube2: 18
+
+		URDRURD
+		rect2x4: 1
 
 Volume Files: Layers of the volume are separated by a newline. Cubes are
 represented by "e" or "o", where "e" are the starting locations to try (that is,
@@ -36,10 +39,42 @@ Sequence: The order of the pices, given by single-letter abbreviations (End,
 Corner, and Straight).
 
 Output: The output is any number of solutions for each volume, as:
- * the name of the file which defined the volume (without the extension),
- * the number of different foldings, and
- * a line for each way to fold the sequence to satisfy the volume.
+ * a line for each way to fold the sequence to satisfy the volume,
+ * the name of the file which defined the volume (without the extension), and
+ * the number of different foldings.
 """
 
+import argparse
+
+from findsolutions import FindSolutions
+from volumes import VolumeFromFile
+import pieces
+
+
+_LETTER_TO_CLS = dict(
+		(cls.LETTER, cls) for cls in (pieces.End, pieces.Corner, pieces.Straight))
+
+
+def _FormatPiece(piece):
+	if piece.faceTo:
+		return str(piece.faceTo)[0].upper()
+	else:
+		return ''
+
+
 if __name__ == '__main__':
-	raise NotImplementedError()
+	parser = argparse.ArgumentParser()
+	parser.add_argument('sequence')
+	parser.add_argument('volumefile', nargs='+')
+
+	args = parser.parse_args()
+
+	volumes = [VolumeFromFile(volumefile) for volumefile in args.volumefile]
+	sequence = [_LETTER_TO_CLS[letter]() for letter in args.sequence]
+
+	for volume in volumes:
+		numSolutions = 0
+		for solution in FindSolutions(volume, sequence):
+			numSolutions += 1
+			print ''.join(_FormatPiece(piece) for piece in solution)
+		print '%s: %d\n' % (volume.name, numSolutions)
