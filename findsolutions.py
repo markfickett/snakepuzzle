@@ -112,7 +112,7 @@ def TrySequences(volume, partialSequence):
 
 
 if __name__ == '__main__':
-	parser = argparse.ArgumentParser(description=__doc__)
+	parser = argparse.ArgumentParser()
 	parser.add_argument('volumefile')
 	args = parser.parse_args()
 
