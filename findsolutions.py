@@ -3,17 +3,14 @@ This finds working configurations for pieces of the the wooden snake puzzle
 and solves their arrangement. (See README for elaboration.)
 """
 
+import sys
 
 from direction import Direction, GetOpposite
 from pieces import Piece, End, Corner, Straight
 from volumes import VolumeFromFile
 
 
-NUM_ENDS = 2
-
-
-def PlacePieceAndSearch(volume, prevPiece, piece, location,
-		ends, corners, straights):
+def PlacePieceAndSearch(volume, prevPiece, piece, location, sequence):
 	"""Places a Piece in the next location in the Volume, continues searching.
 
 	Yields:
@@ -32,39 +29,22 @@ def PlacePieceAndSearch(volume, prevPiece, piece, location,
 	else:
 		for faceTo in piece.getFaceToPossibilities():
 			piece.faceTo = faceTo
-			for solution in TryMorePieces(volume, piece,
-					ends, corners, straights):
+			for solution in TryMorePieces(volume, piece, sequence):
 				yield solution
 	volume.releaseLocation(location)
 	if prevPiece is not None:
 		prevPiece.next = None
 
 
-def TryMorePieces(volume, piece, ends, corners, straights):
-	if not any([ends, corners, straights]):
+def TryMorePieces(volume, piece, sequence):
+	if not sequence:
 		raise RuntimeError('Need to try more pieces, but none left!')
 	nextLocation = CalculateNextLocation(piece)
-	if corners:
-		nextCorner = corners.pop()
-		for solution in PlacePieceAndSearch(
-				volume, piece, nextCorner, nextLocation,
-				ends, corners, straights):
-			yield solution
-		corners.append(nextCorner)
-	if straights:
-		nextStraight = straights.pop()
-		for solution in PlacePieceAndSearch(
-				volume, piece, nextStraight, nextLocation,
-				ends, corners, straights):
-			yield solution
-		straights.append(nextStraight)
-	if not any([corners, straights]):
-		finalEnd = ends.pop()
-		for solution in PlacePieceAndSearch(
-				volume, piece, finalEnd, nextLocation,
-				ends, corners, straights):
-			yield solution
-		ends.append(finalEnd)
+	nextPiece = sequence.pop()
+	for solution in PlacePieceAndSearch(
+			volume, piece, nextPiece, nextLocation, sequence):
+		yield solution
+	sequence.append(nextPiece)
 
 
 def CalculateNextLocation(piece):
@@ -94,25 +74,50 @@ def CalculateNextLocation(piece):
 		return (x, y, z+1)
 
 
-def FindSolutions(volume, numCorners):
-	numStraights = volume.getNumLocations() - (NUM_ENDS + numCorners)
-	if numStraights < 0:
+def FindSolutions(volume, sequence):
+	if len(sequence) != volume.getNumLocations():
 		raise RuntimeError(
-				'Volume %s has only %d locations, but requested %d corners.'
-				% (volume.name, volume.getNumLocations(), numCorners))
-	ends = [End() for i in xrange(NUM_ENDS)]
-	corners = [Corner() for i in xrange(numCorners)]
-	straights = [Straight() for i in xrange(numStraights)]
+				'Volume %s has %d locations, cannot fit sequence with %d pieces.'
+				% (volume.name, volume.getNumLocations(), len(sequence)))
 
-	firstEnd = ends.pop()
+	firstEnd = sequence.pop()
 	volume.first = firstEnd
 	for location in volume.getUniqueStartingLocations():
 		for solution in PlacePieceAndSearch(
-				volume, None, firstEnd, location,
-				ends, corners, straights):
+				volume, None, firstEnd, location, sequence):
 			yield solution
+	sequence.append(firstEnd)
+
+
+def TrySequences(volume, partialSequence):
+	n = len(partialSequence)
+	if n == volume.getNumLocations():
+		for solution in FindSolutions(volume, partialSequence):
+			yield solution
+		return
+
+	if n == 0 or n == volume.getNumLocations() - 1:
+		nextPieces = [End()]
+	else:
+		nextPieces = [Corner(), Straight()]
+	for nextPiece in nextPieces:
+		partialSequence.append(nextPiece)
+		for solution in TrySequences(volume, partialSequence):
+			yield solution
+		partialSequence.pop()
 
 
 if __name__ == '__main__':
-	for solution in FindSolutions(VolumeFromFile('volumefiles/minsquare.txt'), 2):
+	if len(sys.argv) != 2:
+		raise ValueError('usage: %s volume_file' % sys.argv[0])
+	volume = VolumeFromFile(sys.argv[1])
+	if volume.getNumLocations() < 2:
+		raise RuntimeError(
+				')o: %s has only %d locations!', volume.name, volume.getNumLocations())
+
+	print 'Searching for all the solutions.'
+	numSolutions = 0
+	for solution in TrySequences(volume, []):
+		numSolutions += 1
 		print ', '.join(str(piece) for piece in solution)
+	print 'found %d solutions for %s' % (numSolutions, volume.name)
