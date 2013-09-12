@@ -8,7 +8,6 @@ See README for elaboration.
 """
 
 import argparse
-import sys
 
 from direction import Direction, GetOpposite
 from pieces import Piece, End, Corner, Straight
