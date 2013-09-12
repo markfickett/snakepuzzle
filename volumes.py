@@ -119,7 +119,7 @@ class VolumeFromFile(Volume):
 			if c not in ('e', 'o', ' '):
 				raise ValueError(
 						'bad character %r on line %d, column %d' % (c, lineNum, x+1))
-			if not c:
+			if c == ' ':
 				continue
 			self._availables[(x, y, z)] = True
 			if c == 'e':
