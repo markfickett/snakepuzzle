@@ -1,8 +1,13 @@
-"""
-This finds working configurations for pieces of the the wooden snake puzzle
-and solves their arrangement. (See README for elaboration.)
+"""Finds all snake puzzle piece orderings and their folding patterns.
+
+This tries all possible sequences of pieces (small cubes; with two End pieces
+and any mix of Straight and Corner pieces), and tries to fold them to fill a
+volume (such as the canonical snake puzzle, which forms a 3x3x3 cube).
+
+See README for elaboration.
 """
 
+import argparse
 import sys
 
 from direction import Direction, GetOpposite
@@ -108,9 +113,11 @@ def TrySequences(volume, partialSequence):
 
 
 if __name__ == '__main__':
-	if len(sys.argv) != 2:
-		raise ValueError('usage: %s volume_file' % sys.argv[0])
-	volume = VolumeFromFile(sys.argv[1])
+	parser = argparse.ArgumentParser(description=__doc__)
+	parser.add_argument('volumefile')
+	args = parser.parse_args()
+
+	volume = VolumeFromFile(args.volumefile)
 	if volume.getNumLocations() < 2:
 		raise RuntimeError(
 				')o: %s has only %d locations!', volume.name, volume.getNumLocations())
