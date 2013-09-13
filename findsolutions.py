@@ -129,13 +129,18 @@ def _CalculateNextLocation(piece):
 		return (x, y, z+1)
 
 
-def _TrySequences(volume, partialSequence):
+def _TrySequences(volume, partialSequence, tried):
 	"""
 	Recursively builds up all possible sequences of Straights and Corners and
 	finds folding solutions for them.
 	"""
 	n = len(partialSequence)
 	if n == volume.getNumLocations():
+		seqStr = FormatSequence(partialSequence)
+		if seqStr in tried or seqStr[::-1] in tried:
+			return
+		else:
+			tried.add(seqStr)
 		for solution in FindSolutions(volume, partialSequence):
 			yield partialSequence, solution
 		return
@@ -146,7 +151,7 @@ def _TrySequences(volume, partialSequence):
 		nextPieces = [Corner(), Straight()]
 	for nextPiece in nextPieces:
 		partialSequence.append(nextPiece)
-		for sequence, solution in _TrySequences(volume, partialSequence):
+		for sequence, solution in _TrySequences(volume, partialSequence, tried):
 			yield partialSequence, solution
 		partialSequence.pop()
 
@@ -164,11 +169,14 @@ if __name__ == '__main__':
 	print 'Searching for all the solutions.'
 	numSolutions = 0
 	lastSeq = None
-	for sequence, solution in _TrySequences(volume, []):
+	tried = set()
+	for sequence, solution in _TrySequences(volume, [], tried):
 		numSolutions += 1
 		formattedSeq = FormatSequence(sequence)
 		if lastSeq != formattedSeq:
 			print formattedSeq
 			lastSeq = formattedSeq
-		print '\t', FormatSolution(solution)
-	print 'found %d solutions for %s' % (numSolutions, volume.name)
+		print '  ', FormatSolution(solution)
+	print (
+			'found %d solutions for %s (tried %d sequences)'
+			% (numSolutions, volume.name, len(tried)))
