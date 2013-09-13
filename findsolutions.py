@@ -8,6 +8,7 @@ See README for elaboration.
 """
 
 import argparse
+import multiprocessing
 
 from direction import Direction, GetOpposite
 from pieces import Piece, End, Corner, Straight
@@ -78,19 +79,37 @@ def CalculateNextLocation(piece):
 		return (x, y, z+1)
 
 
+def SearchProcessInit(solutions):
+	SearchProcess.solutions = solutions
+
+
+def SearchProcess((volume, sequence, startLocation)):
+	firstEnd = sequence.pop()
+	volume.first = firstEnd
+	for solution in PlacePieceAndSearch(
+			volume, None, firstEnd, startLocation, sequence):
+		SearchProcess.solutions.put(solution)
+
+
 def FindSolutions(volume, sequence):
 	if len(sequence) != volume.getNumLocations():
 		raise RuntimeError(
 				'Volume %s has %d locations, cannot fit sequence with %d pieces.'
 				% (volume.name, volume.getNumLocations(), len(sequence)))
 
-	firstEnd = sequence.pop()
-	volume.first = firstEnd
-	for location in volume.getUniqueStartingLocations():
-		for solution in PlacePieceAndSearch(
-				volume, None, firstEnd, location, sequence):
-			yield solution
-	sequence.append(firstEnd)
+	solutions = multiprocessing.Queue()
+	searcherPool = multiprocessing.Pool(None, SearchProcessInit, (solutions,))
+	result = searcherPool.map_async(
+		SearchProcess,
+		[(volume, sequence, loc) for loc in volume.getUniqueStartingLocations()])
+	searcherPool.close()
+
+	while not result.ready():
+		if not solutions.empty():
+			yield solutions.get()
+	searcherPool.join()
+	while not solutions.empty():
+		yield solutions.get()
 
 
 def TrySequences(volume, partialSequence):
