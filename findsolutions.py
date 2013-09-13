@@ -15,7 +15,53 @@ from pieces import Piece, End, Corner, Straight
 from volumes import VolumeFromFile
 
 
-def PlacePieceAndSearch(volume, prevPiece, piece, location, sequence):
+def FindSolutions(volume, sequence):
+	"""Finds all ways the sequence of Pieces can be folded in the volume.
+
+	This uses multiple processes. It uses a pool with as many processes as
+	available CPUs, and will run one process to explore from each starting
+	location in the volume. (If the volume has fewer starting locations than there
+	are available CPUs, computing will be underutilized.)
+
+	Args:
+		volume: Constraining volume to occupy.
+		sequence: A list of Pieces, representing a connected chain to fold.
+	"""
+	if len(sequence) != volume.getNumLocations():
+		raise RuntimeError(
+				'Volume %s has %d locations, cannot fit sequence with %d pieces.'
+				% (volume.name, volume.getNumLocations(), len(sequence)))
+
+	solutions = multiprocessing.Queue()
+	searcherPool = multiprocessing.Pool(None, _SearchProcessInit, (solutions,))
+	result = searcherPool.map_async(
+		_SearchProcess,
+		[(volume, sequence, loc) for loc in volume.getUniqueStartingLocations()])
+	searcherPool.close()
+
+	while not result.ready():
+		if not solutions.empty():
+			yield solutions.get()
+	searcherPool.join()
+	while not solutions.empty():
+		yield solutions.get()
+
+
+def _SearchProcessInit(solutions):
+	"""Initializes a _SearchProcess with the queue to put solutions in."""
+	_SearchProcess.solutions = solutions
+
+
+def _SearchProcess((volume, sequence, startLocation)):
+	"""Searches for solutions from one starting location."""
+	firstEnd = sequence.pop()
+	volume.first = firstEnd
+	for solution in _PlacePieceAndSearch(
+			volume, None, firstEnd, startLocation, sequence):
+		_SearchProcess.solutions.put(solution)
+
+
+def _PlacePieceAndSearch(volume, prevPiece, piece, location, sequence):
 	"""Places a Piece in the next location in the Volume, continues searching.
 
 	Yields:
@@ -34,26 +80,29 @@ def PlacePieceAndSearch(volume, prevPiece, piece, location, sequence):
 	else:
 		for faceTo in piece.getFaceToPossibilities():
 			piece.faceTo = faceTo
-			for solution in TryMorePieces(volume, piece, sequence):
+			for solution in _TryMorePieces(volume, piece, sequence):
 				yield solution
 	volume.releaseLocation(location)
 	if prevPiece is not None:
 		prevPiece.next = None
 
 
-def TryMorePieces(volume, piece, sequence):
+def _TryMorePieces(volume, piece, sequence):
 	if not sequence:
 		raise RuntimeError('Need to try more pieces, but none left!')
-	nextLocation = CalculateNextLocation(piece)
+	nextLocation = _CalculateNextLocation(piece)
 	nextPiece = sequence.pop()
-	for solution in PlacePieceAndSearch(
+	for solution in _PlacePieceAndSearch(
 			volume, piece, nextPiece, nextLocation, sequence):
 		yield solution
 	sequence.append(nextPiece)
 
 
-def CalculateNextLocation(piece):
+def _CalculateNextLocation(piece):
 	"""
+	Given the location and orientation of the given piece, determines where to
+	place the next piece attached to it.
+
 	X right, Y up, Z front
 	"""
 	location = piece.location
@@ -79,40 +128,11 @@ def CalculateNextLocation(piece):
 		return (x, y, z+1)
 
 
-def SearchProcessInit(solutions):
-	SearchProcess.solutions = solutions
-
-
-def SearchProcess((volume, sequence, startLocation)):
-	firstEnd = sequence.pop()
-	volume.first = firstEnd
-	for solution in PlacePieceAndSearch(
-			volume, None, firstEnd, startLocation, sequence):
-		SearchProcess.solutions.put(solution)
-
-
-def FindSolutions(volume, sequence):
-	if len(sequence) != volume.getNumLocations():
-		raise RuntimeError(
-				'Volume %s has %d locations, cannot fit sequence with %d pieces.'
-				% (volume.name, volume.getNumLocations(), len(sequence)))
-
-	solutions = multiprocessing.Queue()
-	searcherPool = multiprocessing.Pool(None, SearchProcessInit, (solutions,))
-	result = searcherPool.map_async(
-		SearchProcess,
-		[(volume, sequence, loc) for loc in volume.getUniqueStartingLocations()])
-	searcherPool.close()
-
-	while not result.ready():
-		if not solutions.empty():
-			yield solutions.get()
-	searcherPool.join()
-	while not solutions.empty():
-		yield solutions.get()
-
-
-def TrySequences(volume, partialSequence):
+def _TrySequences(volume, partialSequence):
+	"""
+	Recursively builds up all possible sequences of Straights and Corners and
+	finds folding solutions for them.
+	"""
 	n = len(partialSequence)
 	if n == volume.getNumLocations():
 		for solution in FindSolutions(volume, partialSequence):
@@ -125,7 +145,7 @@ def TrySequences(volume, partialSequence):
 		nextPieces = [Corner(), Straight()]
 	for nextPiece in nextPieces:
 		partialSequence.append(nextPiece)
-		for solution in TrySequences(volume, partialSequence):
+		for solution in _TrySequences(volume, partialSequence):
 			yield solution
 		partialSequence.pop()
 
@@ -142,7 +162,7 @@ if __name__ == '__main__':
 
 	print 'Searching for all the solutions.'
 	numSolutions = 0
-	for solution in TrySequences(volume, []):
+	for solution in _TrySequences(volume, []):
 		numSolutions += 1
 		print ', '.join(str(piece) for piece in solution)
 	print 'found %d solutions for %s' % (numSolutions, volume.name)
