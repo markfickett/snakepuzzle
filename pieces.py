@@ -6,6 +6,9 @@ __all__ = [
 	'End',
 	'Piece',
 	'Straight',
+
+	'FormatSolution',
+	'FormatSequence',
 ]
 
 
@@ -70,3 +73,18 @@ class Corner(Piece):
 		faceTos.remove(self.faceFrom)
 		faceTos.remove(GetOpposite(self.faceFrom))
 		return list(faceTos)
+
+
+def _FormatOrientedPiece(piece):
+	if piece.faceTo:
+		return str(piece.faceTo)[0].upper()
+	else:
+		return ''
+
+
+def FormatSolution(solution):
+	return ''.join(_FormatOrientedPiece(piece) for piece in solution)
+
+
+def FormatSequence(sequence):
+	return ''.join(piece.LETTER for piece in sequence)

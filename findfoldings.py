@@ -55,13 +55,6 @@ _LETTER_TO_CLS = dict(
 		(cls.LETTER, cls) for cls in (pieces.End, pieces.Corner, pieces.Straight))
 
 
-def _FormatPiece(piece):
-	if piece.faceTo:
-		return str(piece.faceTo)[0].upper()
-	else:
-		return ''
-
-
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
 	parser.add_argument('sequence')
@@ -76,5 +69,5 @@ if __name__ == '__main__':
 		numSolutions = 0
 		for solution in FindSolutions(volume, sequence):
 			numSolutions += 1
-			print ''.join(_FormatPiece(piece) for piece in solution)
+			pieces.FormatSolution(solution)
 		print '%s: %d\n' % (volume.name, numSolutions)

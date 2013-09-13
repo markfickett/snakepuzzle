@@ -12,6 +12,7 @@ import multiprocessing
 
 from direction import Direction, GetOpposite
 from pieces import Piece, End, Corner, Straight
+from pieces import FormatSolution, FormatSequence
 from volumes import VolumeFromFile
 
 
@@ -136,7 +137,7 @@ def _TrySequences(volume, partialSequence):
 	n = len(partialSequence)
 	if n == volume.getNumLocations():
 		for solution in FindSolutions(volume, partialSequence):
-			yield solution
+			yield partialSequence, solution
 		return
 
 	if n == 0 or n == volume.getNumLocations() - 1:
@@ -145,8 +146,8 @@ def _TrySequences(volume, partialSequence):
 		nextPieces = [Corner(), Straight()]
 	for nextPiece in nextPieces:
 		partialSequence.append(nextPiece)
-		for solution in _TrySequences(volume, partialSequence):
-			yield solution
+		for sequence, solution in _TrySequences(volume, partialSequence):
+			yield partialSequence, solution
 		partialSequence.pop()
 
 
@@ -162,7 +163,12 @@ if __name__ == '__main__':
 
 	print 'Searching for all the solutions.'
 	numSolutions = 0
-	for solution in _TrySequences(volume, []):
+	lastSeq = None
+	for sequence, solution in _TrySequences(volume, []):
 		numSolutions += 1
-		print ', '.join(str(piece) for piece in solution)
+		formattedSeq = FormatSequence(sequence)
+		if lastSeq != formattedSeq:
+			print formattedSeq
+			lastSeq = formattedSeq
+		print '\t', FormatSolution(solution)
 	print 'found %d solutions for %s' % (numSolutions, volume.name)
